@@ -8,6 +8,13 @@ function New-M365ConditionalAccessPolicy {
         [Parameter(Mandatory = $false)]
         $ConditionalAccessPolicyName = 'GRANT - Require MFA'
     )
+    # Check for AzureAD module
+    $AZAD = Get-Module -Name AzureAD -ListAvailable
+    $AZADP = Get-Module -Name AzureADPreview -ListAvailable
+    if (!$AZAD -and !$AZADP){
+        Write-Host "Please install AzureAD Module ('Install-Module AzureAD') to continue."
+        break;
+    }
     # Check if the Conditional Access Policy alredy exist
     if ($CAP_check = Get-AzureADMSConditionalAccessPolicy | Where-Object {$_.DisplayName -eq $ConditionalAccessPolicyName}) {
         Write-Host "Policy named $ConditionalAccessPolicyName already exist on the tenant. Exiting..." -ForegroundColor Red
@@ -21,7 +28,6 @@ function New-M365ConditionalAccessPolicy {
         Write-Host "Creating new Azure AD securit group - $SecurityGroupName" -ForegroundColor Green
         New-AzureADGroup -DisplayName $SecurityGroupName -MailEnabled $false -MailNickName 'NotSet' -SecurityEnabled $true
     }
-
     # Getting the Security gorup ID
     $SG = Get-AzureADGroup | Where-Object {$_.DisplayName -eq $SecurityGroupName}
     $SGID = $SG.ObjectId
