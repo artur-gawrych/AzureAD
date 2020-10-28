@@ -1,3 +1,41 @@
+function Get-M365ConditionalAccessPolicy {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        $ConditionalAccessPolicyName
+    )
+    $CAPs = Get-AzureADMSConditionalAccessPolicy
+    if (!$CAPs) {
+        Write-Host 'No Conditional Access Policies Exists on the tenant'
+        break
+    }
+    if ($ConditionalAccessPolicyName) {
+        $CAPNameCheck = Get-AzureADMSConditionalAccessPolicy | Where-Object { $_.DisplayName -eq $ConditionalAccessPolicyName }
+        if ($CAPNameCheck) {
+            foreach ($CAP in $CAPNameCheck) {
+                $CAPs = [PSCustomObject]@{
+                    'CAP Name'       = $CAP.DisplayName
+                    'State'          = $CAP.State
+                    'Grant Controls' = $CAP.GrantControls
+                }
+            $CAPs
+            }
+        } else {
+            Write-Host "Contitional Access Policy named '$ConditionalAccessPolicyName' does not exist!" -ForegroundColor Red
+        }
+    }
+    else {
+        foreach ($CAP in $CAPs){
+            $CAPs = [PSCustomObject]@{
+                'CAP Name'          = $CAP.DisplayName
+                'State'             = $CAP.State
+                'Grant Controls'    = $CAP.GrantControls
+            }
+            $CAPs
+        }
+        
+    }
+}
 function New-M365ConditionalAccessPolicy {
     [CmdletBinding()]
     param (
@@ -16,14 +54,14 @@ function New-M365ConditionalAccessPolicy {
         break;
     }
     # Check if the Conditional Access Policy alredy exist
-    $CAP_check = Get-AzureADMSConditionalAccessPolicy | Where-Object { $_.DisplayName -eq $ConditionalAccessPolicyName }
-    if ($CAP_check) {
+    $CAPNameCheck = Get-AzureADMSConditionalAccessPolicy | Where-Object { $_.DisplayName -eq $ConditionalAccessPolicyName }
+    if ($CAPNameCheck) {
         Write-Host "Policy named $ConditionalAccessPolicyName already exist on the tenant. Exiting..." -ForegroundColor Red
         break;
     }
     # Check if the Azure AD Scurity group alredy exist, if not create it.
-    $SG_check = Get-AzureADGroup | Where-Object { $_.DisplayName -eq $SecurityGroupName }
-    if ($SG_check) {
+    $SGNameCheck = Get-AzureADGroup | Where-Object { $_.DisplayName -eq $SecurityGroupName }
+    if ($SGNameCheck) {
         Write-Host "Azure AD group named $SecurityGroupName already exist." -ForegroundColor Green
     } else {
         Write-Host "Creating new Azure AD securit group - $SecurityGroupName" -ForegroundColor Green
