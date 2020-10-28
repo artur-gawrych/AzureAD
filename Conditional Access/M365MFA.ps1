@@ -32,7 +32,6 @@ function New-M365ConditionalAccessPolicy {
     # Getting the Security gorup ID
     $SG = Get-AzureADGroup | Where-Object { $_.DisplayName -eq $SecurityGroupName }
     $SGID = $SG.ObjectId
-
     # Setting the conditions
     $conditions = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessConditionSet
     $conditions.Applications = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessApplicationCondition
@@ -45,11 +44,11 @@ function New-M365ConditionalAccessPolicy {
     $conditions.Locations.ExcludeLocations = 'AllTrusted'
     $conditions.Platforms = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessPlatformCondition
     $conditions.Platforms.IncludePlatforms = 'All'
-
+    #Setting the controls
     $controls = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessGrantControls
     $controls._Operator = 'OR'
     $controls.BuiltInControls = 'mfa'
-
+    #Setting the parameters
     $params = @{
         DisplayName   = $ConditionalAccessPolicyName 
         State         = 'enabledForReportingButNotEnforced' 
