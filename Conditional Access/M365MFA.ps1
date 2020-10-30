@@ -1,9 +1,11 @@
 function Get-M365ConditionalAccessPolicy {
     [CmdletBinding()]
     param(
+        # Name of the Conditional Access Policy
         [Parameter(Mandatory = $false)]
         $ConditionalAccessPolicyName
     )
+    #Checking if any Conditional Access Policy exists
     $CAPs = Get-AzureADMSConditionalAccessPolicy
     if (!$CAPs) {
         Write-Host 'No Conditional Access Policies Exists on the tenant'
@@ -14,22 +16,57 @@ function Get-M365ConditionalAccessPolicy {
         if ($CAPNameCheck) {
             foreach ($CAP in $CAPNameCheck) {
                 $CAPs = [PSCustomObject]@{
-                    'CAP Name'       = $CAP.DisplayName
-                    'State'          = $CAP.State
-                    'Grant Controls' = $CAP.GrantControls
+                    'Name'                      = $CAP.DisplayName
+                    'State'                     = if ($CAP.State -eq 'enabled') {
+                        'ON'
+                    } elseif ($CAP.State -eq 'disabled') {
+                        'OFF'
+                    } elseif ($CAP.State -eq 'enabledForReportingButNotEnforced') {
+                        'REPORT ONLY'
+                    }else{
+                        'UNABLE TO DEFINE'
+                    }
+                    'Access Control'            = if ($CAP.GrantControls.BuiltInControls -contains 'Block') {
+                        'BLOCK'
+                    } else {
+                        'ALLOW'
+                    }
+                    'Access Control Methods'    = $CAP.GrantControls.BuiltInControls
+                    'Required Contols'          = if ($CAP.GrantControls._Operator -eq 'OR') {
+                        'Require one of selected controls'
+                    } else {
+                        'Requre all controls'
+                    }
                 }
-            $CAPs
+                $CAPs
             }
         } else {
             Write-Host "Contitional Access Policy named '$ConditionalAccessPolicyName' does not exist!" -ForegroundColor Red
         }
-    }
-    else {
-        foreach ($CAP in $CAPs){
+    } else {
+        foreach ($CAP in $CAPs) {
             $CAPs = [PSCustomObject]@{
-                'CAP Name'          = $CAP.DisplayName
-                'State'             = $CAP.State
-                'Grant Controls'    = $CAP.GrantControls
+                'Name'                      = $CAP.DisplayName
+                'State'                     = if ($CAP.State -eq 'enabled') {
+                    'ON'
+                } elseif ($CAP.State -eq 'disabled') {
+                    'OFF'
+                } elseif ($CAP.State -eq 'enabledForReportingButNotEnforced') {
+                    'REPORT ONLY'
+                }else{
+                    'UNABLE TO DEFINE'
+                }
+                'Access Control'            = if ($CAP.GrantControls.BuiltInControls -contains 'Block') {
+                    'BLOCK'
+                } else {
+                    'ALLOW'
+                }
+                'Access Control Methods'    = $CAP.GrantControls.BuiltInControls
+                'Required Contols'          = if ($CAP.GrantControls._Operator -eq 'OR') {
+                    'Require one of selected controls'
+                } else {
+                    'Requre all controls'
+                }
             }
             $CAPs
         }
